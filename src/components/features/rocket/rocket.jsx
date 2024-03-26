@@ -1,11 +1,13 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   selectAllRockets,
   getRocketsStatus,
   getRocketsError,
   fetchRockets,
-} from './rocketSlice.jsx';
+  reserveRocket,
+} from "./rocketSlice.jsx";
+import Button from "../../UI/Button.jsx";
 
 const RocketsIndex = () => {
   const dispatch = useDispatch();
@@ -14,32 +16,53 @@ const RocketsIndex = () => {
   const error = useSelector(getRocketsError);
 
   useEffect(() => {
-    if (rocketStatus === 'idle') {
+    if (rocketStatus === "idle") {
       dispatch(fetchRockets());
     }
   }, [rocketStatus, dispatch]);
 
-  let contentToDisplay = '';
-  if (rocketStatus === 'loading') {
+  function displayReservedText(currState) {
+    return currState ? "Cancel Reservation" : "Reserve Rockets";
+  }
+
+  function handleReserveRocket(id) {
+    dispatch(reserveRocket(id));
+  }
+
+  let contentToDisplay = "";
+  if (rocketStatus === "loading") {
     contentToDisplay = <h2>Loading...</h2>;
-  } else if (rocketStatus === 'succeeded') {
+  } else if (rocketStatus === "succeeded") {
     contentToDisplay = rockets.map((data) => (
-      <div key={data.id} className='p-4 shadow-md rounded-2xl  duration-150 scale-95 hover:scale-100 flex flex-col gap-2 '>
-        <h2 className='text-lg font-medium text-green-600'>{data.rocket_name}</h2>
-        <p>{data.description}</p>
-        <hr />
+      <div
+        key={data.id}
+        className="p-4 shadow-sm rounded-2xl  duration-150 scale-95 hover:scale-100 flex flex-col gap-2 bg-slate-200 "
+      >
+        <h2 className="text-lg font-medium text-green-600">
+          {data.rocket_name}
+        </h2>
+        <p className="">
+          {data.reserved && (
+            <span className=" mr-2 text-white px-2 py-1 rounded-md bg-green-600 ">
+              Reserved
+            </span>
+          )}
+          {data.description}
+        </p>
+        <Button title={`${displayReservedText(data.reserved)}`} click={() => handleReserveRocket(data.id)} type="button"/>
+        <hr className="text-gray-800 bg-slate-500" />
       </div>
     ));
-  } else if (rocketStatus === 'failed') {
+  } else if (rocketStatus === "failed") {
     contentToDisplay = <p>{error}</p>;
   }
 
   return (
-    <div className='container w-2/3  mx-auto  flex flex-col gap-9'>
-      <h1 className='text-green-600 text-2xl font-medium capitalize '>Rockets page</h1>
-    <div  className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
-      {contentToDisplay}
-    </div>
+    <div className="container w-2/3  mx-auto  flex flex-col gap-4">
+      <h1 className="text-green-600 text-base font-medium capitalize ">
+        Rockets page
+      </h1>
+      <div className="flex flex-col gap-3">{contentToDisplay}</div>
     </div>
   );
 };
